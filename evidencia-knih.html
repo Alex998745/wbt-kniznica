@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <title>Evidencia kníh</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Knižničný systém – HTML/CSS prototyp</h1>
+  <p>Statický návrh obrazoviek podľa use casov. Určené ako zadanie pre implementáciu v PHP a databáze.</p>
+</header>
+<nav><a href="index.html">Prehľad</a><a href="sprava-pouzivatelov.html">1. Správa používateľov</a><a href="evidencia-knih.html">2. Evidencia kníh</a><a href="poziciavanie-rezervacie.html">3. Požičiavanie a rezervácie</a></nav>
+<main>
+
+<section class="card">
+  <h2>2. Evidencia kníh</h2>
+  <p>Táto časť pokrýva evidenciu knihy, evidenciu exemplárov, vyradenie exemplára, fyzické umiestnenie a nahratie obálky.</p>
+</section>
+
+<section class="grid">
+  <div class="card full">
+    <h3>UC-10 Evidovať knihu</h3>
+    <form action="book_create.php" method="post" class="grid">
+      <div><label>Názov knihy</label><input name="nazov"></div>
+      <div><label>ISBN</label><input name="isbn"></div>
+      <div><label>Autor</label><select name="autor_id"><option>Vyber autora</option></select></div>
+      <div><label>Vydavateľ</label><select name="vydavatel_id"><option>Vyber vydavateľa</option></select></div>
+      <div><label>Rok vydania</label><input type="number" name="rok_vydania"></div>
+      <div><label>Kategória</label><input name="kategoria"></div>
+      <div class="full"><button type="submit">Uložiť knihu</button></div>
+    </form>
+  </div>
+
+  <div class="card full">
+    <h3>Zoznam / vyhľadanie kníh</h3>
+    <form action="books.php" method="get" class="grid">
+      <div><label>Názov alebo ISBN</label><input name="q"></div>
+      <div><label>Stav</label><select><option>Všetky</option><option>Dostupné</option><option>Vypožičané</option><option>Vyradené</option></select></div>
+      <div class="full"><button>Vyhľadať</button></div>
+    </form>
+    <table class="table">
+      <tr><th>Názov</th><th>Autor</th><th>ISBN</th><th>Exempláre</th><th>Akcie</th></tr>
+      <tr>
+        <td>Databázové systémy</td><td>J. Novák</td><td>978-80-0000</td><td>3</td>
+        <td><button>Detail</button><button class="secondary">Exempláre</button><button>Nahrať obálku</button></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>UC-12 Evidovať exemplár knihy</h3>
+    <form action="copy_create.php" method="post">
+      <label>Kniha</label>
+      <select name="kniha_id"><option>Databázové systémy</option></select>
+      <label>Inventárne číslo</label>
+      <input name="inventarne_cislo" placeholder="INV-2026-001">
+      <label>Počiatočný stav</label>
+      <select name="stav"><option>Dostupný</option><option>Vypožičaný</option><option>Rezervovaný</option></select>
+      <button>Pridať exemplár</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>UC-15 Evidovať fyzické umiestnenie knihy</h3>
+    <form action="copy_location.php" method="post">
+      <label>Exemplár</label>
+      <select><option>INV-2026-001</option></select>
+      <label>Miestnosť</label>
+      <select><option>Študovňa</option><option>Sklad</option><option>Oddelenie beletrie</option></select>
+      <label>Regál</label>
+      <input name="regal" placeholder="R-03">
+      <label>Polica</label>
+      <input name="polica" placeholder="P-02">
+      <button>Uložiť umiestnenie</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>UC-16 Nahrať obálku knihy</h3>
+    <form action="cover_upload.php" method="post" enctype="multipart/form-data">
+      <label>Kniha</label>
+      <select><option>Databázové systémy</option></select>
+      <label>Súbor obálky</label>
+      <input type="file" name="obalka" accept="image/*">
+      <button>Nahrať obálku</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>UC-13 Odstrániť knihu / exemplár z evidencie</h3>
+    <form action="copy_remove.php" method="post">
+      <label>Exemplár</label>
+      <select><option>INV-2026-001 – dostupný</option></select>
+      <label>Dôvod vyradenia</label>
+      <textarea name="dovod" placeholder="Poškodená kniha, strata, duplicitný záznam..."></textarea>
+      <button class="danger">Vyradiť exemplár</button>
+    </form>
+  </div>
+</section>
+
+</main>
+<footer>Školský prototyp – bez JavaScriptu, pripravené na doplnenie PHP logiky.</footer>
+</body>
+</html>

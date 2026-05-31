@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <title>Správa používateľov</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Knižničný systém – HTML/CSS prototyp</h1>
+  <p>Statický návrh obrazoviek podľa use casov. Určené ako zadanie pre implementáciu v PHP a databáze.</p>
+</header>
+<nav><a href="index.html">Prehľad</a><a href="sprava-pouzivatelov.html">1. Správa používateľov</a><a href="evidencia-knih.html">2. Evidencia kníh</a><a href="poziciavanie-rezervacie.html">3. Požičiavanie a rezervácie</a></nav>
+<main>
+
+<section class="card">
+  <h2>1. Správa používateľov</h2>
+  <p>Táto časť pokrýva prihlásenie, registráciu, vyhľadanie používateľa, zablokovanie, odblokovanie, aktivity, notifikácie a reset hesla.</p>
+</section>
+
+<section class="grid">
+  <div class="card">
+    <h3>UC-00 Prihlásiť sa do systému</h3>
+    <form action="login.php" method="post">
+      <label>Email</label>
+      <input type="email" name="email" placeholder="meno@example.com">
+      <label>Heslo</label>
+      <input type="password" name="heslo">
+      <button type="submit">Prihlásiť</button>
+      <a class="button secondary" href="#reset">Zabudnuté heslo</a>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>UC-01 Registrovať používateľa</h3>
+    <form action="user_create.php" method="post">
+      <label>Meno</label>
+      <input name="meno">
+      <label>Priezvisko</label>
+      <input name="priezvisko">
+      <label>Email</label>
+      <input type="email" name="email">
+      <label>Rola</label>
+      <select name="rola">
+        <option>Administrátor</option>
+        <option>Knihovník</option>
+        <option>Čitateľ</option>
+      </select>
+      <button type="submit">Vytvoriť používateľa</button>
+    </form>
+  </div>
+
+  <div class="card full">
+    <h3>UC-05 Vyhľadať používateľa</h3>
+    <form action="users.php" method="get" class="grid">
+      <div>
+        <label>Meno</label>
+        <input name="meno">
+      </div>
+      <div>
+        <label>Priezvisko</label>
+        <input name="priezvisko">
+      </div>
+      <div>
+        <label>Email</label>
+        <input name="email">
+      </div>
+      <div>
+        <label>Stav konta</label>
+        <select name="stav">
+          <option>Všetky</option>
+          <option>Aktívny</option>
+          <option>Zablokovaný</option>
+        </select>
+      </div>
+      <div class="full"><button type="submit">Vyhľadať</button></div>
+    </form>
+
+    <table class="table">
+      <tr><th>Meno</th><th>Email</th><th>Rola</th><th>Stav</th><th>Akcie</th></tr>
+      <tr>
+        <td>Jana Nováková</td><td>jana@example.com</td><td>Čitateľ</td><td><span class="badge ok">aktívny</span></td>
+        <td>
+          <button>Detail</button>
+          <button class="danger">Zablokovať</button>
+          <button class="secondary">Aktivity</button>
+        </td>
+      </tr>
+      <tr>
+        <td>Peter Kováč</td><td>peter@example.com</td><td>Čitateľ</td><td><span class="badge blocked">zablokovaný</span></td>
+        <td>
+          <button>Detail</button>
+          <button class="success">Odblokovať</button>
+          <button class="secondary">Aktivity</button>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>UC-03 / UC-03a Zablokovať alebo odblokovať používateľa</h3>
+    <p>Obrazovka detailu používateľa má obsahovať aktuálny stav konta a potvrdenie akcie.</p>
+    <label>Používateľ</label>
+    <input value="Jana Nováková" readonly>
+    <label>Dôvod zablokovania</label>
+    <textarea placeholder="Nepovinné zdôvodnenie..."></textarea>
+    <button class="danger">Zablokovať používateľa</button>
+    <button class="success">Odblokovať používateľa</button>
+  </div>
+
+  <div class="card">
+    <h3>UC-04 Zobraziť aktivity používateľa</h3>
+    <table class="table">
+      <tr><th>Dátum</th><th>Aktivita</th></tr>
+      <tr><td>2026-05-01</td><td>Prihlásenie do systému</td></tr>
+      <tr><td>2026-05-02</td><td>Rezervácia knihy</td></tr>
+      <tr><td>2026-05-03</td><td>Zmena notifikácií</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>UC-06 Nastaviť notifikácie používateľa</h3>
+    <form action="notifications.php" method="post">
+      <label><input type="checkbox" name="notifikacie" style="width:auto;"> Aktivovať emailové notifikácie</label>
+      <label>Email pre upozornenia</label>
+      <input type="email" name="notifikacny_email">
+      <button type="submit">Uložiť nastavenia</button>
+    </form>
+  </div>
+
+  <div class="card" id="reset">
+    <h3>UC-07 Resetovať heslo</h3>
+    <form action="password_reset.php" method="post">
+      <label>Email používateľa</label>
+      <input type="email" name="email">
+      <button type="submit">Odoslať odkaz na reset</button>
+    </form>
+  </div>
+</section>
+
+</main>
+<footer>Školský prototyp – bez JavaScriptu, pripravené na doplnenie PHP logiky.</footer>
+</body>
+</html>

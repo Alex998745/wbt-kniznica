@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <title>Knižnica – prototyp</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Knižničný systém – HTML/CSS prototyp</h1>
+  <p>Statický návrh obrazoviek podľa use casov. Určené ako zadanie pre implementáciu v PHP a databáze.</p>
+</header>
+<nav><a href="index.html">Prehľad</a><a href="sprava-pouzivatelov.html">1. Správa používateľov</a><a href="evidencia-knih.html">2. Evidencia kníh</a><a href="poziciavanie-rezervacie.html">3. Požičiavanie a rezervácie</a></nav>
+<main>
+
+<section class="card">
+  <h2>Zadanie pre študentov</h2>
+  <p>Úlohou je podľa pripraveného HTML/CSS prototypu implementovať knižničný systém v PHP s databázou.</p>
+  <div class="note">
+    <strong>Pravidlo:</strong> HTML obrazovky sú iba návrh. Študenti majú doplniť PHP spracovanie formulárov,
+    validácie, prácu s databázou, prihlasovanie a oprávnenia podľa roly používateľa.
+  </div>
+  <h3>Rozdelenie implementácie</h3>
+  <table class="table">
+    <tr><th>Časť</th><th>Use cases</th><th>Odporúčané PHP moduly</th></tr>
+    <tr><td>Správa používateľov</td><td>UC-00, UC-01, UC-03, UC-03a, UC-04, UC-05, UC-06, UC-07</td><td>auth.php, users.php, user_detail.php</td></tr>
+    <tr><td>Evidencia kníh</td><td>UC-10, UC-12, UC-13, UC-15, UC-16</td><td>books.php, book_detail.php, copies.php</td></tr>
+    <tr><td>Požičiavanie a rezervácie</td><td>UC-20, UC-21, UC-30</td><td>loans.php, returns.php, reservations.php</td></tr>
+  </table>
+</section>
+
+<section class="card">
+  <h2>Odporúčaná databázová logika</h2>
+  <ul>
+    <li><strong>pouzivatelia</strong> – meno, priezvisko, email, heslo_hash, rola, stav</li>
+    <li><strong>knihy</strong> – nazov, autor_id, vydavatel_id, rok_vydania, isbn, obalka</li>
+    <li><strong>exemplare</strong> – kniha_id, inventarne_cislo, stav, miestnost, regal, polica</li>
+    <li><strong>vypozicky</strong> – pouzivatel_id, exemplar_id, datum_vypozicky, termin_vratenia, datum_vratenia</li>
+    <li><strong>rezervacie</strong> – pouzivatel_id, kniha_id, datum_rezervacie, expiracia, stav</li>
+    <li><strong>aktivity</strong> – pouzivatel_id, akcia, datum_cas</li>
+  </ul>
+</section>
+
+</main>
+<footer>Školský prototyp – bez JavaScriptu, pripravené na doplnenie PHP logiky.</footer>
+</body>
+</html>
