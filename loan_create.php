@@ -25,6 +25,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ]);
     $specimen = $specimenStatement->fetch(PDO::FETCH_ASSOC);
 
+    $startDate;
+    if (empty($_POST['datum_vypozicky'])) {
+        $startDate = date('Y-m-d');
+    }else {
+        $startDate = $_POST['datum_vypozicky'];
+    }
+
+    $returnDate;
+    if (empty($_POST['termin_vratenia'])) {
+        $returnDate = date('Y-m-d', strtotime('+30 days', $startDate));
+    }else {
+        $returnDate = $_POST['termin_vratenia'];
+    }
+
     $borrowStatement = $pdo->prepare('
         BEGIN;
 
@@ -42,8 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $borrowStatement->execute([
         'userId' => $user['id'],
         'specimenId' => $specimen['id'],
-        'startDate' => date('Y-m-d'),
-        'returnDate' => date('Y-m-d', strtotime('+7 days')),
+        'startDate' => $startDate,
+        'returnDate' => $returnDate,
         'inventoryNumber' => $specimenInventoryNumber
     ]);
 }
