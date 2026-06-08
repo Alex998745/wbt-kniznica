@@ -1,69 +1,82 @@
 <?php
 
-$administratorJePrihlaseny = true; 
+$sprava = '';
+$admin = true;
 
-$host = "localhost";
-$dbname = "kniznica"; 
-$username = "root";    
-$password = "ssnd";    
+$db = mysqli_connect('localhost', 'root', 'ssnd', 'kniznica');
 
-try {
-    $pdo = new PDO(
-        "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
-        $username,
-        $password
-    );
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Chyba pripojenia k databáze: " . $e->getMessage());
-}
+if (!$db)
+    die('Chyba pripojenia k databáze!');
 
-$odkaz = "";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['priezvisko'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST')
+{
+    if (!$admin)
+    {
+        $sprava = 'Nemáte oprávnenie.';
+    }
+    else
+    {
+        $meno = trim($_POST['meno']);
+        $priezvisko = trim($_POST['priezvisko']);
+        $email = trim($_POST['email']);
+        $rola = $_POST['rola'];
 
-    if ($administratorJePrihlaseny) {
-        
-        $meno = trim($_POST["meno"] ?? '');
-        $priezvisko = trim($_POST["priezvisko"] ?? '');
-        $email = trim($_POST["email"] ?? '');
-        $rola = $_POST["rola"] ?? 'Čitateľ';
+        if ($rola == '')
+            $rola = 'Čitateľ';
 
-        if (empty($priezvisko) || empty($email)) {
-            $odkaz = "<p style='color:red'>Priezvisko a email sú povinné údaje.</p>";
-        } else {
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM pouzivatelia WHERE email = ?");
-            $stmt->execute([$email]);
+        if ($priezvisko == '' || $email == '')
+        {
+            $sprava = 'Priezvisko a email sú povinné údaje.';
+        }
+        else
+        {
+            $q = mysqli_query($db,
+                "SELECT COUNT(*) 
+                 FROM pouzivatelia
+                 WHERE email = '$email'"
+            );
 
-            if ($stmt->fetchColumn() > 0) {
-                $odkaz = "<p style='color:red'>Používateľ s rovnakým emailom už existuje.</p>";
-            } else {
-                $heslo = substr(bin2hex(random_bytes(4)), 0, 8);
+            $pocet = mysqli_fetch_row($q)[0];
 
-                $stmt = $pdo->prepare("
-                    INSERT INTO pouzivatelia 
-                    (meno, priezvisko, email, heslo, rola) 
-                    VALUES (?, ?, ?, ?, ?)
-                ");
+            if ($pocet > 0)
+            {
+                $sprava = 'Používateľ s týmto emailom už existuje.';
+            }
+            else
+            {
+                $heslo = substr(md5(rand()), 0, 8);
 
-                $stmt->execute([
-                    $meno,
-                    $priezvisko,
-                    $email,
-                    password_hash($heslo, PASSWORD_DEFAULT),
-                    $rola
-                ]);
+                $heslo_hash = password_hash(
+                    $heslo,
+                    PASSWORD_DEFAULT
+                );
 
-                $odkaz = "<div style='background:#d4edda; padding:10px; border:1px solid green; margin-bottom:10px;'>
-                            <strong>Úspech!</strong> Používateľ zaregistrovaný.<br>
-                            Iniciálne heslo: <strong>$heslo</strong>
-                          </div>";
+                mysqli_query($db,
+                    "INSERT INTO pouzivatelia
+                    (meno, priezvisko, email, heslo, rola)
+                    VALUES
+                    (
+                        '$meno',
+                        '$priezvisko',
+                        '$email',
+                        '$heslo_hash',
+                        '$rola'
+                    )"
+                );
+
+                $sprava =
+                    'Používateľ bol zaregistrovaný.<br>' .
+                    'Heslo: <b>' . $heslo . '</b>';
             }
         }
-    } else {
-        $odkaz = "<p style='color:red'>Nemáte oprávnenie na túto akciu.</p>";
     }
 }
+
+echo $sprava;
+
+mysqli_close($db);
+
 ?>
 
 <!DOCTYPE html>
