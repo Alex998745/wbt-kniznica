@@ -35,6 +35,10 @@ if (!isset($dbError)) {
         if ($specimen === false) {
             $problems[] = 'Exemplár nebol nájdený.';
             $success = false;
+        }else {
+            $avaiabilityStatement = $pdo->prepare('
+                SELECT 
+            ');
         }
 
         if ($success) {
