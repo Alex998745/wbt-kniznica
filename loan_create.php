@@ -3,71 +3,83 @@
 <?php
 require 'load_data.php';
 $success;
-$problems = [];
+if (!isset($dbError)) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $success = true;
+        $usrStatement = $pdo->prepare('
+            SELECT
+                id, stav_konta, dovod_zablokovania
+            FROM pouzivatel
+            WHERE CONCAT(meno, \' \', priezvisko) = :fullName
+        ');
+        $usrStatement->execute([
+            'fullName' => $_POST['pouzivatel_id']
+        ]);
+        $user = $usrStatement->fetch(PDO::FETCH_ASSOC);
+        if ($user === false) {
+            $problems[] = 'Používateľ nebol nájdený.';
+            $success = false;
+        }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $success = true;
-    $usrStatement = $pdo->prepare('
-        SELECT
-            id, stav_konta, dovod_zablokovania
-        FROM pouzivatel
-        WHERE CONCAT(meno, \' \', priezvisko) = :fullName
-    ');
-    $usrStatement->execute([
-        'fullName' => $_POST['pouzivatel_id']
-    ]);
-    $user = $usrStatement->fetch(PDO::FETCH_ASSOC);
+        $specimenInventoryNumber = explode(' ', $_POST['exemplar_id'])[0];
+        $specimenStatement = $pdo->prepare('
+            SELECT
+                id
+            FROM exemplar
+            WHERE inventarne_cislo = :inventoryNumber
+        ');
+        $specimenStatement->execute([
+            'inventoryNumber' => $specimenInventoryNumber
+        ]);
+        $specimen = $specimenStatement->fetch(PDO::FETCH_ASSOC);
+        if ($specimen === false) {
+            $problems[] = 'Exemplár nebol nájdený.';
+            $success = false;
+        }
 
-    $specimenInventoryNumber = explode(' ', $_POST['exemplar_id'])[0];
-    $specimenStatement = $pdo->prepare('
-        SELECT
-            id
-        FROM exemplar
-        WHERE inventarne_cislo = :inventoryNumber
-    ');
-    $specimenStatement->execute([
-        'inventoryNumber' => $specimenInventoryNumber
-    ]);
-    $specimen = $specimenStatement->fetch(PDO::FETCH_ASSOC);
+        if ($success) {
+            $startDate;
+            if (empty($_POST['datum_vypozicky'])) {
+                $startDate = date('Y-m-d');
+            }else {
+                $startDate = $_POST['datum_vypozicky'];
+            }
 
-    $startDate;
-    if (empty($_POST['datum_vypozicky'])) {
-        $startDate = date('Y-m-d');
+            $returnDate;
+            if (empty($_POST['termin_vratenia'])) {
+                $returnDate = date('Y-m-d', strtotime('+30 days', strtotime($startDate)));
+            }else {
+                $returnDate = $_POST['termin_vratenia'];
+            }
+
+            $borrowStatement = $pdo->prepare('
+                BEGIN;
+
+                INSERT INTO vypozicka
+                    (pouzivatel_id, exemplar_id, datum_vypozicky, termin_vratenia)
+                VALUES
+                    (:userId, :specimenId, :startDate, :returnDate);
+
+                UPDATE exemplar SET
+                    stav = \'vypozicany\'
+                WHERE inventarne_cislo = :inventoryNumber;
+
+                COMMIT
+            ');
+            $borrowStatement->execute([
+                'userId' => $user['id'],
+                'specimenId' => $specimen['id'],
+                'startDate' => $startDate,
+                'returnDate' => $returnDate,
+                'inventoryNumber' => $specimenInventoryNumber
+            ]);
+        }
     }else {
-        $startDate = $_POST['datum_vypozicky'];
+        $success = false;
+        $problems[] = 'Formulár nebol vyplnený, vyplňte ho ešte raz, prosím.';
     }
-
-    $returnDate;
-    if (empty($_POST['termin_vratenia'])) {
-        $returnDate = date('Y-m-d', strtotime('+30 days', strtotime($startDate)));
-    }else {
-        $returnDate = $_POST['termin_vratenia'];
-    }
-
-    $borrowStatement = $pdo->prepare('
-        BEGIN;
-
-        INSERT INTO vypozicka
-            (pouzivatel_id, exemplar_id, datum_vypozicky, termin_vratenia)
-        VALUES
-            (:userId, :specimenId, :startDate, :returnDate);
-
-        UPDATE exemplar SET
-            stav = \'vypozicany\'
-        WHERE inventarne_cislo = :inventoryNumber;
-
-        COMMIT
-    ');
-    $borrowStatement->execute([
-        'userId' => $user['id'],
-        'specimenId' => $specimen['id'],
-        'startDate' => $startDate,
-        'returnDate' => $returnDate,
-        'inventoryNumber' => $specimenInventoryNumber
-    ]);
 }else {
     $success = false;
-    $problems[] = 'Formulár nebol vyplnený, vyplňte ho ešte raz, prosím.';
 }
 ?>
 
@@ -82,7 +94,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <body>
     <header>
         <h1>Knižničný systém – HTML/CSS prototyp</h1>
-        <p>Statický návrh obrazoviek podľa use casov. Určené ako zadanie pre implementáciu v PHP a databáze.</p>
     </header>
     <nav><a href="index.html">Prehľad</a><a href="sprava-pouzivatelov.html">1. Správa používateľov</a><a href="evidencia-knih.html">2. Evidencia kníh</a><a href="poziciavanie-rezervacie.html">3. Požičiavanie a rezervácie</a></nav>
     <main>
