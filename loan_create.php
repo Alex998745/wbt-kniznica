@@ -34,6 +34,14 @@ if (!isset($dbError)) {
             if ($borrowCount >= $settings['maxBorrows']) {
                 $problems[] = 'Používateľ dosiahol limit na vypožičania.';
             }
+
+            if ($user['stav_konta'] == 'zablokovany') {
+                if ($user['dovod_zablokovania'] === null) {
+                    $problems[] = 'Používateľ je zablokovaný (dôvod nie je uvedený).';
+                }else {
+                    $problems[] = 'Používateľ je zablokovaný. Uvedený dôvod je: '.$user['dovod_zablokovania'];
+                }
+            }
         }
 
         $specimenInventoryNumber = explode(' ', $_POST['exemplar_id'])[0];
