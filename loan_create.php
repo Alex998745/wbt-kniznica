@@ -2,8 +2,11 @@
 
 <?php
 require 'load_data.php';
+$success;
+$problems = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $success = true;
     $usrStatement = $pdo->prepare('
         SELECT
             id, stav_konta, dovod_zablokovania
@@ -36,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $returnDate;
     if (empty($_POST['termin_vratenia'])) {
-        $returnDate = date('Y-m-d', strtotime('+30 days', $startDate));
+        $returnDate = date('Y-m-d', strtotime('+30 days', strtotime($startDate)));
     }else {
         $returnDate = $_POST['termin_vratenia'];
     }
@@ -62,6 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'returnDate' => $returnDate,
         'inventoryNumber' => $specimenInventoryNumber
     ]);
+}else {
+    $success = false;
+    $problems[] = 'Formulár nebol vyplnený, vyplňte ho ešte raz, prosím.';
 }
 ?>
 
@@ -82,72 +88,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <main>
 
         <section class="card">
-            <h2>3. Požičiavanie a rezervácie</h2>
-            <p>Táto časť pokrýva vypožičanie knihy, vrátenie knihy a rezerváciu aktuálne nedostupnej knihy.</p>
-        </section>
-
-        <section class="grid">
-            <div class="card full">
-                <h3>UC-20 Vypožičať knihu</h3>
-                <form action="loan_create.php" method="post" class="grid">
-                    <div><label>Používateľ</label><select name="pouzivatel_id"><option>Jana Nováková</option></select></div>
-                    <div><label>Dostupný exemplár</label><select name="exemplar_id"><option>INV-2026-001 – Databázové systémy</option></select></div>
-                    <div><label>Dátum výpožičky</label><input type="date" name="datum_vypozicky"></div>
-                    <div><label>Termín vrátenia</label><input type="date" name="termin_vratenia"></div>
-                    <div class="full"><button>Vypožičať knihu</button></div>
-                </form>
-            </div>
-
-            <div class="card full">
-                <h3>Aktívne výpožičky</h3>
-                <table class="table">
-                    <tr><th>Používateľ</th><th>Kniha</th><th>Exemplár</th><th>Termín vrátenia</th><th>Stav</th><th>Akcia</th></tr>
-                    <tr>
-                        <td>Jana Nováková</td>
-                        <td>Databázové systémy</td>
-                        <td>INV-2026-001</td>
-                        <td>2026-06-10</td>
-                        <td><span class="badge warn">vypožičaná</span></td>
-                        <td><button class="success">Vrátiť</button></td>
-                    </tr>
-                </table>
-            </div>
-
-            <div class="card">
-                <h3>UC-21 Vrátiť knihu</h3>
-                <form action="loan_return.php" method="post">
-                    <label>Aktívna výpožička</label>
-                    <select name="vypozicka_id"><option>Jana Nováková – Databázové systémy – INV-2026-001</option></select>
-                    <label>Dátum vrátenia</label>
-                    <input type="date" name="datum_vratenia">
-                    <label>Stav exemplára po vrátení</label>
-                    <select name="stav_exemplara"><option>Dostupný</option><option>Poškodený</option><option>Vyradený</option></select>
-                    <button class="success">Potvrdiť vrátenie</button>
-                </form>
-            </div>
-
-            <div class="card">
-                <h3>UC-30 Rezervovať knihu</h3>
-                <form action="reservation_create.php" method="post">
-                    <label>Čitateľ</label>
-                    <select name="pouzivatel_id"><option>Jana Nováková</option></select>
-                    <label>Kniha</label>
-                    <select name="kniha_id"><option>Programovanie v PHP – všetky exempláre vypožičané</option></select>
-                    <label>Dátum rezervácie</label>
-                    <input type="date" name="datum_rezervacie">
-                    <label>Expirácia rezervácie</label>
-                    <input type="date" name="expiracia">
-                    <button>Vytvoriť rezerváciu</button>
-                </form>
-            </div>
-
-            <div class="card full">
-                <h3>Zoznam rezervácií</h3>
-                <table class="table">
-                    <tr><th>Čitateľ</th><th>Kniha</th><th>Dátum rezervácie</th><th>Expirácia</th><th>Stav</th></tr>
-                    <tr><td>Jana Nováková</td><td>Programovanie v PHP</td><td>2026-05-27</td><td>2026-06-03</td><td><span class="badge warn">čaká</span></td></tr>
-                </table>
-            </div>
+            <?php if ($success): ?>
+                <h2>Kniha sa úspešne vypožičala</h2>
+            <?php else: ?>
+                <h2>Kniha <strong>nebola</strong> úspešne vypožičaná</h2>
+                <?php foreach ($problems as $problem): ?>
+                    <p><?= $problem ?></p>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </section>
 
     </main>
