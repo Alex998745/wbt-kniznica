@@ -2,10 +2,13 @@
 
 <?php
 require 'load_data.php';
-$success;
+
+function validateDate($date) {
+    return strtotime($date) ? true : false;
+}
+
 if (!isset($dbError)) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $success = true;
         $usrStatement = $pdo->prepare('
             SELECT
                 id, stav_konta, dovod_zablokovania
@@ -18,13 +21,26 @@ if (!isset($dbError)) {
         $user = $usrStatement->fetch(PDO::FETCH_ASSOC);
         if ($user === false) {
             $problems[] = 'Používateľ nebol nájdený.';
-            $success = false;
+        }else {
+            $borrowCountCheckStatement = $pdo->prepare('
+                SELECT COUNT(*)
+                FROM vypozicka
+                WHERE pouzivatel_id = :userId AND stav = \'aktivna\'
+            ');
+            $borrowCountCheckStatement->execute([
+                'userId' => $user['id']
+            ]);
+            $borrowCount = $borrowCountCheckStatement->fetch()[0];
+            if ($borrowCount >= $settings['maxBorrows']) {
+                $problems[] = 'Používateľ dosiahol limit na vypožičania.';
+            }
         }
 
         $specimenInventoryNumber = explode(' ', $_POST['exemplar_id'])[0];
         $specimenStatement = $pdo->prepare('
             SELECT
-                id
+                id,
+                stav
             FROM exemplar
             WHERE inventarne_cislo = :inventoryNumber
         ');
@@ -34,27 +50,31 @@ if (!isset($dbError)) {
         $specimen = $specimenStatement->fetch(PDO::FETCH_ASSOC);
         if ($specimen === false) {
             $problems[] = 'Exemplár nebol nájdený.';
-            $success = false;
-        }else {
-            $avaiabilityStatement = $pdo->prepare('
-                SELECT 
-            ');
+        }else if ($specimen['stav'] == 'vypozicany') {
+            $problems[] = 'Exemplár je práve vypožičaný.';
         }
 
-        if ($success) {
-            $startDate;
-            if (empty($_POST['datum_vypozicky'])) {
-                $startDate = date('Y-m-d');
-            }else {
-                $startDate = $_POST['datum_vypozicky'];
+        $startDate;
+        if (empty($_POST['datum_vypozicky'])) {
+            $startDate = date('Y-m-d');
+        }else {
+            $startDate = $_POST['datum_vypozicky'];
+            if (!validateDate($startDate)) {
+                $problems[] = 'Neplatný začiatočný deň.';
             }
+        }
 
-            $returnDate;
-            if (empty($_POST['termin_vratenia'])) {
-                $returnDate = date('Y-m-d', strtotime('+30 days', strtotime($startDate)));
-            }else {
-                $returnDate = $_POST['termin_vratenia'];
+        $returnDate;
+        if (empty($_POST['termin_vratenia'])) {
+            $returnDate = date('Y-m-d', strtotime('+30 days', strtotime($startDate)));
+        }else {
+            $returnDate = $_POST['termin_vratenia'];
+            if (!validateDate($returnDate)) {
+                $problems[] = 'Neplatný termín vrátenia.';
             }
+        }
+
+        if (count($problems) == 0) {
 
             $borrowStatement = $pdo->prepare('
                 BEGIN;
@@ -68,6 +88,11 @@ if (!isset($dbError)) {
                     stav = \'vypozicany\'
                 WHERE inventarne_cislo = :inventoryNumber;
 
+                INSERT INTO aktivita_pouzivatela
+                    (pouzivatel_id, typ_aktivity, popis)
+                VALUES
+                    (:userId, \'vypozicka\', :desc);
+
                 COMMIT
             ');
             $borrowStatement->execute([
@@ -75,15 +100,13 @@ if (!isset($dbError)) {
                 'specimenId' => $specimen['id'],
                 'startDate' => $startDate,
                 'returnDate' => $returnDate,
-                'inventoryNumber' => $specimenInventoryNumber
+                'inventoryNumber' => $specimenInventoryNumber,
+                'desc' => 'Požičal si exemplár '.$specimenInventoryNumber
             ]);
         }
     }else {
-        $success = false;
         $problems[] = 'Formulár nebol vyplnený, vyplňte ho ešte raz, prosím.';
     }
-}else {
-    $success = false;
 }
 ?>
 
@@ -103,10 +126,10 @@ if (!isset($dbError)) {
     <main>
 
         <section class="card">
-            <?php if ($success): ?>
+            <?php if (count($problems) == 0): ?>
                 <h2>Kniha sa úspešne vypožičala</h2>
             <?php else: ?>
-                <h2>Kniha <strong>nebola</strong> úspešne vypožičaná</h2>
+                <h2>Kniha nebola úspešne vypožičaná</h2>
                 <?php foreach ($problems as $problem): ?>
                     <p><?= $problem ?></p>
                 <?php endforeach; ?>
@@ -114,6 +137,6 @@ if (!isset($dbError)) {
         </section>
 
     </main>
-    <footer>Školský prototyp – bez JavaScriptu, pripravené na doplnenie PHP logiky.</footer>
+    <footer>Školský prototyp – bez JavaScriptu, ale s PHP logikou.</footer>
   </body>
 </html>
