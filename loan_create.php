@@ -132,7 +132,6 @@ if (!isset($dbError)) {
     </header>
     <nav><a href="index.html">Prehľad</a><a href="sprava-pouzivatelov.html">1. Správa používateľov</a><a href="evidencia-knih.html">2. Evidencia kníh</a><a href="poziciavanie-rezervacie.html">3. Požičiavanie a rezervácie</a></nav>
     <main>
-
         <section class="card">
             <?php if (count($problems) == 0): ?>
                 <h2>Kniha sa úspešne vypožičala</h2>
@@ -142,8 +141,10 @@ if (!isset($dbError)) {
                     <p><?= $problem ?></p>
                 <?php endforeach; ?>
             <?php endif; ?>
+            <div class="full">
+                <a href="poziciavanie-rezervacie.html"><button>Späť k vypožičiavaniu</button></a>
+            </div>
         </section>
-
     </main>
     <footer>Školský prototyp – bez JavaScriptu, ale s PHP logikou.</footer>
   </body>
